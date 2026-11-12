@@ -187,8 +187,9 @@ footer .legal a{color:var(--deep);font-weight:700}
   <!-- ============ ACCOUNTS ============ -->
   <section class="page" id="page-accounts">
     <div class="notice">
-      <strong>Straight talk about connecting:</strong> your Studio itself — the queue, the writing, your voice, and your proof log — works right now, on this device. Live auto-posting <em>into other people's accounts</em> turns on only after each platform (Meta, TikTok, YouTube, and the rest) approves the Glam Auto-Post Studio app. That approval is each platform's rule, not ours. Until a platform is approved, the flow is simple: schedule here, post, then paste your live link in the Queue — your proof is logged either way.
+      <strong>Straight talk about connecting:</strong> your Studio itself — the queue, the writing, your voice, and your proof log — works right now, on this device. <strong>Meta (Facebook + Instagram) is wired in below</strong> — connect it and post straight from your Queue. Live posting for everyone else turns on as each platform (TikTok, YouTube, and the rest) approves the Glam Auto-Post Studio app. That approval is each platform's rule, not ours. For any platform that isn't connected yet, the flow is simple: schedule here, post, then paste your live link in the Queue — your proof is logged either way.
     </div>
+    <div class="card" id="meta-card"></div>
     <div class="card">
       <h2>🔗 Your accounts</h2>
       <p>Save the handle you use on each platform, then run a connection check any time. Your handles are stored only in this browser, on this device.</p>
@@ -313,7 +314,7 @@ function switchTab(name){
 }
 
 /* ---------- rendering ---------- */
-function render(){ renderQueue(); renderPosted(); renderAccounts(); renderBadges(); }
+function render(){ renderQueue(); renderPosted(); renderAccounts(); renderMetaCard(); renderBadges(); }
 
 function renderBadges(){
   const qb = posts.filter(p => ["draft","queued","overdue","attention"].includes(postState(p))).length;
@@ -400,7 +401,7 @@ function postCard(p, withProof){
           <input type="url" inputmode="url" placeholder="Paste the live link for ${esc(platName(id))}…" data-proof-input="${p.id}|${id}">
           <button class="btn btn-good btn-small" data-proof-save="${p.id}|${id}">Save proof</button>
           <button class="btn btn-danger btn-small" data-proof-fail="${p.id}|${id}">Didn't post</button>
-        </div></div>`;
+        </div>${metaPostControls(p, id)}</div>`;
     }).join("");
     proofHtml = `<div class="proof"><p class="small" style="margin:0 0 8px">When this post goes out, paste the live link for each platform. That link is your proof — no link, no “posted.”</p>${rows}</div>`;
   }
@@ -453,6 +454,10 @@ function wirePostCards(){
     p.updatedAt = new Date().toISOString();
     saveAll(); render();
     toast("Marked as not posted for " + platName(plat) + " — it will wait under Needs attention.");
+  });
+  $$("[data-meta-post]").forEach(b => b.onclick = () => {
+    const [pid, plat] = b.dataset.metaPost.split("|");
+    doMetaPost(pid, plat);
   });
   $$("[data-undo]").forEach(b => b.onclick = () => {
     const [pid, plat] = b.dataset.undo.split("|");
@@ -658,9 +663,163 @@ $("#btn-wipe").addEventListener("click", () => {
   location.reload();
 });
 
+/* ---------- Meta (Facebook + Instagram) live connection ---------- */
+const META_APP_ID = "1396358505904938";
+const META_GRAPH_VERSION = "v23.0";
+const META_SCOPES = "pages_show_list,pages_read_engagement,pages_manage_posts,pages_manage_metadata,read_insights,instagram_basic,instagram_content_publish,instagram_manage_comments,instagram_manage_messages,instagram_manage_insights,business_management";
+let meta = store.get("meta", {connected:false, userName:"", pages:[], selectedPageId:""});
+
+function saveMeta(){ store.set("meta", meta); }
+function selectedPage(){ return (meta.pages || []).find(pg => pg.id === meta.selectedPageId) || null; }
+
+function loadFbSdk(){
+  if(window.FB) return;
+  window.fbAsyncInit = function(){
+    FB.init({appId: META_APP_ID, cookie: true, xfbml: false, version: META_GRAPH_VERSION});
+    FB.getLoginStatus(function(resp){
+      if(resp.status === "connected" && !meta.connected){ fetchMetaPages(); }
+      renderMetaCard();
+    });
+  };
+  const s = document.createElement("script");
+  s.src = "https://connect.facebook.net/en_US/sdk.js";
+  s.async = true; s.defer = true; s.crossOrigin = "anonymous";
+  document.head.appendChild(s);
+}
+function fetchMetaPages(){
+  FB.api("/me", {fields:"name"}, function(me){
+    if(me && me.name) meta.userName = me.name;
+    FB.api("/me/accounts", {fields:"id,name,access_token,instagram_business_account{id,username}"}, function(res){
+      if(res && !res.error){
+        meta.connected = true;
+        meta.pages = (res.data || []).map(pg => ({
+          id: pg.id, name: pg.name, token: pg.access_token,
+          igId: pg.instagram_business_account ? pg.instagram_business_account.id : "",
+          igName: pg.instagram_business_account ? pg.instagram_business_account.username : ""
+        }));
+        if(!meta.pages.some(pg => pg.id === meta.selectedPageId))
+          meta.selectedPageId = meta.pages.length ? meta.pages[0].id : "";
+        saveMeta(); render();
+        toast(meta.pages.length ? "Meta connected ✅ Pick your Page in Accounts." : "Meta connected, but no Pages were shared with the Studio.");
+      } else {
+        toast("Meta connected, but the Studio could not read your Pages. Try connecting again.");
+      }
+      renderMetaCard();
+    });
+  });
+}
+function connectMeta(){
+  if(!window.FB){ loadFbSdk(); toast("Loading Meta sign-in… give it a second, then tap Connect again."); return; }
+  FB.login(function(resp){
+    if(resp && resp.authResponse){ fetchMetaPages(); }
+    else { toast("Meta sign-in was cancelled — nothing was connected."); }
+  }, {scope: META_SCOPES, auth_type: "rerequest"});
+}
+function disconnectMeta(){
+  if(!confirm("Disconnect Meta from this Studio on this device? Your queue and proof log stay right here.")) return;
+  const done = function(){
+    meta = {connected:false, userName:"", pages:[], selectedPageId:""};
+    saveMeta(); render();
+    toast("Meta disconnected on this device.");
+  };
+  if(window.FB){ FB.logout(function(){ done(); }); } else { done(); }
+}
+function renderMetaCard(){
+  const card = document.getElementById("meta-card");
+  if(!card) return;
+  if(!meta.connected){
+    card.innerHTML = `<h2>🔵 Meta — Facebook + Instagram</h2>
+      <p>Connect your Meta account once, and the Studio can post straight to your Facebook Page and your linked Instagram — and drop the live link right into your proof log. Your connection lives in this browser, on this device.</p>
+      <div class="btn-row"><button class="btn btn-primary" id="btn-meta-connect">Connect with Meta</button></div>
+      <p class="small">You'll see Meta's own sign-in and a plain list of what the Studio is asking to do. Nothing ever posts without you tapping Post.</p>`;
+    const b = document.getElementById("btn-meta-connect");
+    if(b) b.onclick = connectMeta;
+    return;
+  }
+  const pg = selectedPage();
+  const opts = (meta.pages || []).map(p => `<option value="${esc(p.id)}" ${p.id === meta.selectedPageId ? "selected" : ""}>${esc(p.name)}</option>`).join("");
+  card.innerHTML = `<h2>🔵 Meta — Facebook + Instagram</h2>
+    <p><span class="pill pill-saved">CONNECTED</span>${meta.userName ? ` Signed in as <strong>${esc(meta.userName)}</strong>.` : ""} Posts go out from the Page you pick:</p>
+    <label for="meta-page">Your Facebook Page</label>
+    <select id="meta-page">${opts}</select>
+    ${pg ? `<p style="margin-top:10px">${pg.igId ? `📸 Instagram linked to this Page: <strong>@${esc(pg.igName)}</strong> — Instagram posting is ready.` : "📸 No Instagram account is linked to this Page, so Instagram posting isn't available for it yet."}</p>` : ""}
+    <div class="btn-row">
+      <button class="btn btn-soft" id="btn-meta-refresh">↻ Refresh my Pages</button>
+      <button class="btn btn-danger" id="btn-meta-disconnect">Disconnect Meta</button>
+    </div>
+    <p class="small">Now open the <strong>Queue</strong>: any lined-up Facebook or Instagram post has a <strong>Post it now</strong> button, and the live link lands in your proof log automatically. ✨</p>`;
+  const sel = document.getElementById("meta-page");
+  if(sel) sel.onchange = () => { meta.selectedPageId = sel.value; saveMeta(); renderMetaCard(); toast("Page saved ✅"); };
+  const rf = document.getElementById("btn-meta-refresh");
+  if(rf) rf.onclick = () => {
+    if(window.FB){ FB.getLoginStatus(r => { if(r.status === "connected") fetchMetaPages(); else connectMeta(); }); }
+    else connectMeta();
+  };
+  const dc = document.getElementById("btn-meta-disconnect");
+  if(dc) dc.onclick = disconnectMeta;
+}
+function metaPostControls(p, plat){
+  if(!meta.connected) return "";
+  const pg = selectedPage();
+  if(plat === "facebook"){
+    if(!pg) return "";
+    return `<div class="proof-inputs"><button class="btn btn-primary btn-small" data-meta-post="${p.id}|facebook">📣 Post to ${esc(pg.name)} now</button></div>`;
+  }
+  if(plat === "instagram"){
+    if(!pg || !pg.igId) return "";
+    return `<div class="proof-inputs">
+        <input type="url" inputmode="url" placeholder="Public image link for Instagram (https://…)" data-ig-img="${p.id}">
+        <button class="btn btn-primary btn-small" data-meta-post="${p.id}|instagram">📣 Post to @${esc(pg.igName)} now</button>
+      </div>
+      <p class="small">Instagram needs a photo: paste a link to a picture that's live on the web, then tap Post. The caption on this post is what goes out.</p>`;
+  }
+  return "";
+}
+function doMetaPost(pid, plat){
+  const p = posts.find(x => x.id === pid); if(!p) return;
+  const pg = selectedPage();
+  if(!window.FB || !meta.connected || !pg){ toast("Connect Meta in the Accounts tab first."); return; }
+  if(plat === "facebook"){
+    toast("Posting to " + pg.name + "…");
+    FB.api("/" + pg.id + "/feed", "post", {message: p.caption, access_token: pg.token}, function(res){
+      if(res && !res.error && res.id){
+        p.results = p.results || {};
+        p.results.facebook = {state:"posted", url:"https://www.facebook.com/" + res.id, at:new Date().toISOString()};
+        p.updatedAt = new Date().toISOString();
+        saveAll(); render();
+        toast("✅ Posted to Facebook — the proof link is in your log!");
+      } else {
+        toast("Facebook said no: " + ((res && res.error && res.error.message) || "unknown error"));
+      }
+    });
+    return;
+  }
+  if(plat === "instagram"){
+    const input = document.querySelector(`[data-ig-img="${pid}"]`);
+    const img = ((input && input.value) || "").trim();
+    if(!/^https:\/\/.+/i.test(img)){ toast("Paste a public image link first — Instagram posts need a photo."); return; }
+    toast("Posting to Instagram… give it a few seconds.");
+    FB.api("/" + pg.igId + "/media", "post", {image_url: img, caption: p.caption, access_token: pg.token}, function(res){
+      if(!res || res.error || !res.id){ toast("Instagram stopped at step 1: " + ((res && res.error && res.error.message) || "unknown error")); return; }
+      FB.api("/" + pg.igId + "/media_publish", "post", {creation_id: res.id, access_token: pg.token}, function(pub){
+        if(!pub || pub.error || !pub.id){ toast("Instagram stopped at publish: " + ((pub && pub.error && pub.error.message) || "unknown error")); return; }
+        FB.api("/" + pub.id, {fields:"permalink", access_token: pg.token}, function(m){
+          const url = (m && m.permalink) ? m.permalink : "https://www.instagram.com/";
+          p.results = p.results || {};
+          p.results.instagram = {state:"posted", url, at:new Date().toISOString()};
+          p.updatedAt = new Date().toISOString();
+          saveAll(); render();
+          toast("✅ Posted to Instagram — the proof link is in your log!");
+        });
+      });
+    });
+  }
+}
+
 /* ---------- init ---------- */
 loadVoiceForm();
 resetComposer();
+loadFbSdk();
 render();
 if("serviceWorker" in navigator){
   window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });

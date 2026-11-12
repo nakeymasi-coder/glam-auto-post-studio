@@ -1,7 +1,7 @@
 /* Glam Auto-Post Studio — service worker
    Caches the app shell so the Studio opens fast and works offline.
    User data lives in localStorage, never in this cache. */
-const CACHE = "gaps-shell-v1";
+const CACHE = "gaps-shell-v2";
 const SHELL = [
   "./",
   "./index.html",
