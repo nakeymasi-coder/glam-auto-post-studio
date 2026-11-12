@@ -127,6 +127,7 @@ footer .legal a{color:var(--deep);font-weight:700}
   <button data-tab="queue" class="active">Queue <span class="badge" id="badge-queue" style="display:none"></span></button>
   <button data-tab="create">Create</button>
   <button data-tab="posted">Posted <span class="badge" id="badge-posted" style="display:none"></span></button>
+  <button data-tab="inbox">Inbox</button>
   <button data-tab="accounts">Accounts</button>
   <button data-tab="voice">My Voice</button>
 </nav>
@@ -184,10 +185,32 @@ footer .legal a{color:var(--deep);font-weight:700}
     </div>
   </section>
 
+  <!-- ============ INBOX ============ -->
+  <section class="page" id="page-inbox">
+    <div class="card">
+      <h2>📊 Your numbers, in plain English</h2>
+      <p>No charts to decode. Just what your Page and Instagram are doing, in words.</p>
+      <div id="insights-box"><p class="small">Connect Meta in the Accounts tab, then your numbers show up here.</p></div>
+      <div class="btn-row"><button class="btn btn-soft" id="btn-insights-refresh">↻ Refresh my numbers</button></div>
+    </div>
+    <div class="card">
+      <h2>💬 Latest comments</h2>
+      <p>The newest comments on your latest Instagram post and your Facebook Page posts — read them here, answer them here.</p>
+      <div id="comments-box"><p class="small">Connect Meta in the Accounts tab, then your comments show up here.</p></div>
+      <div class="btn-row"><button class="btn btn-soft" id="btn-comments-refresh">↻ Refresh comments</button></div>
+    </div>
+    <div class="card">
+      <h2>✉️ Messages</h2>
+      <p>Your Instagram conversations, in one place. Open one to read it and reply without leaving the Studio.</p>
+      <div id="messages-box"><p class="small">Connect Meta in the Accounts tab, then your conversations show up here.</p></div>
+      <div class="btn-row"><button class="btn btn-soft" id="btn-messages-refresh">↻ Refresh messages</button></div>
+    </div>
+  </section>
+
   <!-- ============ ACCOUNTS ============ -->
   <section class="page" id="page-accounts">
     <div class="notice">
-      <strong>Straight talk about connecting:</strong> your Studio itself — the queue, the writing, your voice, and your proof log — works right now, on this device. <strong>Meta (Facebook + Instagram) is wired in below</strong> — connect it and post straight from your Queue. Live posting for everyone else turns on as each platform (TikTok, YouTube, and the rest) approves the Glam Auto-Post Studio app. That approval is each platform's rule, not ours. For any platform that isn't connected yet, the flow is simple: schedule here, post, then paste your live link in the Queue — your proof is logged either way.
+      <strong>Straight talk about connecting:</strong> your Studio itself — the queue, the writing, your voice, and your proof log — works right now, on this device. <strong>Meta (Facebook + Instagram) is wired in below</strong> — connect it and post straight from your Queue, and read your numbers, comments, and Instagram messages in the Inbox tab. Live posting for everyone else turns on as each platform (TikTok, YouTube, and the rest) approves the Glam Auto-Post Studio app. That approval is each platform's rule, not ours. For any platform that isn't connected yet, the flow is simple: schedule here, post, then paste your live link in the Queue — your proof is logged either way.
     </div>
     <div class="card" id="meta-card"></div>
     <div class="card">
@@ -311,6 +334,7 @@ function switchTab(name){
   $$(".page").forEach(pg => pg.classList.toggle("active", pg.id === "page-" + name));
   window.scrollTo({top:0});
   render();
+  if(name === "inbox" && meta.connected && !inboxLoaded) loadInboxAll();
 }
 
 /* ---------- rendering ---------- */
@@ -816,7 +840,170 @@ function doMetaPost(pid, plat){
   }
 }
 
+/* ---------- Inbox: numbers, comments, messages (live Meta data) ---------- */
+let inboxLoaded = false;
+function inboxReady(){
+  const pg = selectedPage();
+  return !!(window.FB && meta.connected && pg);
+}
+function inboxNeedConnect(boxId){
+  const box = document.getElementById(boxId);
+  if(box) box.innerHTML = `<p class="small">Connect Meta in the Accounts tab first — then this fills in from your own Page and Instagram.</p>`;
+}
+function fmtDay(iso){
+  try { return new Date(iso).toLocaleDateString(undefined, {month:"short", day:"numeric"}); } catch(e){ return ""; }
+}
+function loadInsights(){
+  if(!inboxReady()){ inboxNeedConnect("insights-box"); return; }
+  const pg = selectedPage();
+  const box = document.getElementById("insights-box");
+  box.innerHTML = `<p class="small">Reading your numbers…</p>`;
+  const lines = [];
+  FB.api("/" + pg.id, {fields:"name,fan_count,about", access_token: pg.token}, function(info){
+    if(info && !info.error){
+      lines.push(`<p>📘 <strong>${esc(info.name)}</strong> — ${info.fan_count != null ? Number(info.fan_count).toLocaleString() + " people follow your Page." : "your Facebook Page."}</p>`);
+      if(info.about) lines.push(`<p class="small">Your Page says: “${esc(info.about)}”</p>`);
+    }
+    FB.api("/" + pg.id + "/insights", {metric:"page_media_view", period:"day", access_token: pg.token}, function(ins){
+      const vals = ins && ins.data && ins.data[0] && ins.data[0].values ? ins.data[0].values.slice(-3) : [];
+      if(vals.length){
+        lines.push(`<p>👀 People saw your Page content <strong>${vals.map(v => Number(v.value).toLocaleString()).join(", ")}</strong> times over the last ${vals.length} days (${vals.map(v => fmtDay(v.end_time)).join(", ")}).</p>`);
+      }
+      if(pg.igId){
+        FB.api("/" + pg.igId, {fields:"username,followers_count,media_count", access_token: pg.token}, function(ig){
+          if(ig && !ig.error){
+            lines.push(`<p>📸 <strong>@${esc(ig.username || pg.igName)}</strong> — ${ig.followers_count != null ? Number(ig.followers_count).toLocaleString() + " followers, " : ""}${ig.media_count != null ? Number(ig.media_count).toLocaleString() + " posts so far." : ""}</p>`);
+          }
+          FB.api("/" + pg.igId + "/insights", {metric:"reach", period:"days_28", access_token: pg.token}, function(igi){
+            const iv = igi && igi.data && igi.data[0] && igi.data[0].values ? igi.data[0].values.slice(-1)[0] : null;
+            if(iv) lines.push(`<p>🌎 Your Instagram reached about <strong>${Number(iv.value).toLocaleString()}</strong> people in the last 28 days.</p>`);
+            box.innerHTML = lines.length ? lines.join("") : `<p class="small">Meta didn't send any numbers back just now — try Refresh in a bit.</p>`;
+          });
+        });
+      } else {
+        box.innerHTML = lines.length ? lines.join("") : `<p class="small">Meta didn't send any numbers back just now — try Refresh in a bit.</p>`;
+      }
+    });
+  });
+}
+function commentRow(c, plat){
+  const who = (c.from && (c.from.name || c.from.username)) || "Someone";
+  const when = c.created_time || c.timestamp || "";
+  return `<div style="border-top:1px solid rgba(127,127,127,.25);padding:10px 0">
+    <p style="margin:0 0 4px"><strong>${esc(who)}</strong> <span class="small">${plat === "instagram" ? "on Instagram" : "on Facebook"}${when ? " · " + fmtDay(when) : ""}</span></p>
+    <p style="margin:0 0 6px">${esc(c.message || c.text || "")}</p>
+    <div class="proof-inputs">
+      <input type="text" placeholder="Write a reply…" data-reply-text="${plat}|${esc(c.id)}">
+      <button class="btn btn-soft btn-small" data-reply-send="${plat}|${esc(c.id)}">Reply</button>
+    </div>
+  </div>`;
+}
+function loadComments(){
+  if(!inboxReady()){ inboxNeedConnect("comments-box"); return; }
+  const pg = selectedPage();
+  const box = document.getElementById("comments-box");
+  box.innerHTML = `<p class="small">Reading your latest comments…</p>`;
+  const chunks = [];
+  const finish = () => { box.innerHTML = chunks.length ? chunks.join("") : `<p class="small">No comments yet on your latest posts. When somebody writes one, it shows up here.</p>`; wireInboxButtons(); };
+  let pending = 0;
+  if(pg.igId){
+    pending++;
+    FB.api("/" + pg.igId + "/media", {fields:"id,caption,timestamp", limit:1, access_token: pg.token}, function(m){
+      const media = m && m.data && m.data[0];
+      if(media){
+        FB.api("/" + media.id + "/comments", {fields:"id,text,username,timestamp", limit:10, access_token: pg.token}, function(cs){
+          (cs && cs.data || []).forEach(c => chunks.push(commentRow(c, "instagram")));
+          if(--pending === 0) finish();
+        });
+      } else if(--pending === 0) finish();
+    });
+  }
+  pending++;
+  FB.api("/" + pg.id + "/posts", {fields:"id,message,created_time", limit:3, access_token: pg.token}, function(ps){
+    const list = (ps && ps.data) || [];
+    if(!list.length){ if(--pending === 0) finish(); return; }
+    let left = list.length;
+    list.forEach(post => {
+      FB.api("/" + post.id + "/comments", {fields:"id,message,from{name},created_time", limit:5, access_token: pg.token}, function(cs){
+        (cs && cs.data || []).forEach(c => chunks.push(commentRow(c, "facebook")));
+        if(--left === 0 && --pending === 0) finish();
+      });
+    });
+  });
+}
+function loadMessages(){
+  if(!inboxReady()){ inboxNeedConnect("messages-box"); return; }
+  const pg = selectedPage();
+  const box = document.getElementById("messages-box");
+  if(!pg.igId){ box.innerHTML = `<p class="small">No Instagram account is linked to this Page, so there are no Instagram conversations to show.</p>`; return; }
+  box.innerHTML = `<p class="small">Reading your Instagram conversations…</p>`;
+  FB.api("/" + pg.igId + "/conversations", {fields:"id,updated_time,participants{id,username}", limit:10, access_token: pg.token}, function(res){
+    const convs = (res && res.data) || [];
+    if(!convs.length){ box.innerHTML = `<p class="small">No conversations yet. When somebody messages your Instagram, it shows up here.</p>`; return; }
+    box.innerHTML = convs.map(cv => {
+      const others = (cv.participants && cv.participants.data || []).filter(u => u.id !== pg.igId).map(u => "@" + (u.username || "unknown")).join(", ") || "Conversation";
+      return `<div style="border-top:1px solid rgba(127,127,127,.25);padding:10px 0">
+        <p style="margin:0 0 6px"><strong>${esc(others)}</strong> <span class="small">${cv.updated_time ? "· " + fmtDay(cv.updated_time) : ""}</span></p>
+        <button class="btn btn-soft btn-small" data-conv-open="${esc(cv.id)}">Open conversation</button>
+        <div data-conv-body="${esc(cv.id)}"></div>
+      </div>`;
+    }).join("");
+    wireInboxButtons();
+  });
+}
+function openConversation(convId){
+  const pg = selectedPage();
+  const body = document.querySelector(`[data-conv-body="${CSS.escape(convId)}"]`);
+  if(!body || !pg) return;
+  body.innerHTML = `<p class="small">Opening…</p>`;
+  FB.api("/" + convId, {fields:"messages.limit(10){id,message,created_time,from{username}}", access_token: pg.token}, function(res){
+    const msgs = (res && res.messages && res.messages.data) || [];
+    if(!msgs.length){ body.innerHTML = `<p class="small">No messages in this conversation yet.</p>`; return; }
+    body.innerHTML = msgs.slice().reverse().map(m => {
+      const who = (m.from && m.from.username) || "Someone";
+      return `<p style="margin:6px 0"><strong>${esc(who)}:</strong> ${esc(m.message || "")}</p>`;
+    }).join("") + `<div class="proof-inputs">
+      <input type="text" placeholder="Write a reply…" data-conv-text="${esc(convId)}">
+      <button class="btn btn-soft btn-small" data-conv-send="${esc(convId)}">Send reply</button>
+    </div>`;
+    wireInboxButtons();
+  });
+}
+function wireInboxButtons(){
+  document.querySelectorAll("[data-reply-send]").forEach(b => {
+    b.onclick = () => {
+      const [plat, cid] = b.dataset.replySend.split("|");
+      const input = document.querySelector(`[data-reply-text="${plat}|${CSS.escape(cid)}"]`);
+      const text = ((input && input.value) || "").trim();
+      if(!text){ toast("Write the reply first."); return; }
+      const pg = selectedPage(); if(!pg) return;
+      FB.api("/" + cid + "/replies", "post", {message: text, access_token: pg.token}, function(res){
+        if(res && !res.error){ toast("Reply posted ✅"); if(input) input.value = ""; loadComments(); }
+        else toast("That reply didn't go: " + ((res && res.error && res.error.message) || "unknown error"));
+      });
+    };
+  });
+  document.querySelectorAll("[data-conv-open]").forEach(b => { b.onclick = () => openConversation(b.dataset.convOpen); });
+  document.querySelectorAll("[data-conv-send]").forEach(b => {
+    b.onclick = () => {
+      const convId = b.dataset.convSend;
+      const input = document.querySelector(`[data-conv-text="${CSS.escape(convId)}"]`);
+      const text = ((input && input.value) || "").trim();
+      if(!text){ toast("Write the reply first."); return; }
+      const pg = selectedPage(); if(!pg || !pg.igId) return;
+      FB.api("/" + pg.igId + "/messages", "post", {recipient: {thread_key: convId}, message: {text}, access_token: pg.token}, function(res){
+        if(res && !res.error){ toast("Reply sent ✅"); openConversation(convId); }
+        else toast("That message didn't send: " + ((res && res.error && res.error.message) || "unknown error"));
+      });
+    };
+  });
+}
+function loadInboxAll(){ loadInsights(); loadComments(); loadMessages(); inboxLoaded = true; }
+
 /* ---------- init ---------- */
+const bi = document.getElementById("btn-insights-refresh"); if(bi) bi.addEventListener("click", loadInsights);
+const bc = document.getElementById("btn-comments-refresh"); if(bc) bc.addEventListener("click", loadComments);
+const bm = document.getElementById("btn-messages-refresh"); if(bm) bm.addEventListener("click", loadMessages);
 loadVoiceForm();
 resetComposer();
 loadFbSdk();
