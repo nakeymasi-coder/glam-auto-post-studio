@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#103B63">
+<meta name="description" content="Glam Auto-Post Studio by Glam Hustle Hub — create content in your own voice, schedule it once, and keep a proof log with a live link for every post.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Glam Auto-Post Studio — Glam Hustle Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{
+  --sapphire:#168FEA;
+  --deep:#103B63;
+  --black:#171A1E;
+  --silver:#C0C6CE;
+  --silver-soft:#E7EBEF;
+  --pearl:#FDFDFE;
+  --pale:#EAF4FE;
+  --ink:#22304A;
+  --muted:#5A6B8A;
+  --line:#D7E3F5;
+  --good:#1E7A4C;
+  --good-bg:#E5F4EC;
+  --warn:#9A6A00;
+  --warn-bg:#FFF4D6;
+  --bad:#B3261E;
+  --bad-bg:#FDECEA;
+}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:'Montserrat',-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(160deg,#EAF4FE 0%,#FDFDFE 45%,#DCEBFD 100%);color:var(--ink);font-size:17px;line-height:1.5}
+h1,h2,h3,.anton{font-family:'Anton',Impact,sans-serif;letter-spacing:.02em;font-weight:400}
+header{background:linear-gradient(120deg,var(--deep),var(--sapphire) 70%,#5FB2F5);color:#fff;padding:26px 16px 20px;text-align:center;border-bottom:3px solid var(--silver)}
+header .fly{font-size:40px;line-height:1}
+header h1{margin:6px 0 4px;font-size:32px;color:#fff;text-shadow:0 2px 8px rgba(16,59,99,.45)}
+header p{margin:0 auto;max-width:620px;font-size:16px;color:#EAF4FE;font-weight:600}
+nav{position:sticky;top:0;z-index:30;display:flex;gap:6px;padding:8px;background:rgba(253,253,254,.97);border-bottom:1px solid var(--line)}
+nav button{flex:1 1 0;min-height:54px;border:2px solid #B9D9F8;background:#fff;border-radius:14px;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:800;color:var(--deep);cursor:pointer;padding:6px 2px}
+nav button.active{background:linear-gradient(120deg,var(--deep),var(--sapphire));color:#fff;border-color:var(--deep)}
+nav .badge{display:inline-block;background:var(--sapphire);color:#fff;border-radius:999px;padding:0 7px;font-size:12px;margin-left:3px;vertical-align:middle}
+nav button.active .badge{background:#fff;color:var(--deep)}
+main{max-width:860px;margin:0 auto;padding:16px 14px 40px}
+.page{display:none}
+.page.active{display:block}
+.card{background:var(--pearl);border:1px solid var(--line);border-radius:18px;padding:18px;margin:0 0 16px;box-shadow:0 2px 10px rgba(22,143,234,.08)}
+.card h2{margin:0 0 10px;font-size:23px;color:var(--deep)}
+.card h3{margin:16px 0 8px;font-size:19px;color:var(--deep)}
+.card p{margin:0 0 10px}
+.hero{background:linear-gradient(120deg,var(--deep),var(--sapphire));color:#fff;border:none}
+.hero h2{color:#fff}
+.hero .when{font-family:'Anton',Impact,sans-serif;font-size:24px;letter-spacing:.02em}
+.hero p{color:#EAF4FE}
+.statusline{background:var(--pale);border:2px solid #B9D9F8;border-radius:14px;padding:14px;font-weight:700;margin:0 0 16px;color:var(--deep)}
+.notice{background:var(--warn-bg);border:2px solid #ECD27A;border-radius:14px;padding:14px;margin:0 0 16px;font-weight:600}
+.goodnote{background:var(--good-bg);border:2px solid #A7D8BC;border-radius:14px;padding:14px;margin:0 0 16px;font-weight:600}
+label{display:block;font-weight:700;margin:16px 0 6px;color:var(--deep)}
+label:first-of-type{margin-top:4px}
+input[type=text],input[type=url],input[type=datetime-local],select,textarea{width:100%;min-height:52px;border:2px solid var(--silver);border-radius:12px;padding:12px;font-size:16px;background:#fff;color:var(--ink);font-family:inherit}
+textarea{min-height:110px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:3px solid #B9D9F8;border-color:var(--sapphire)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:54px;border:none;border-radius:14px;padding:12px 20px;font-family:'Montserrat',sans-serif;font-size:16px;font-weight:800;cursor:pointer;text-decoration:none}
+.btn-primary{background:linear-gradient(120deg,var(--deep),var(--sapphire));color:#fff;width:100%}
+.btn-voice{background:linear-gradient(120deg,var(--sapphire),#5FB2F5);color:#fff;width:100%;font-size:17px}
+.btn-soft{background:#fff;color:var(--deep);border:2px solid #B9D9F8}
+.btn-small{min-height:44px;padding:8px 14px;font-size:14px;border-radius:10px}
+.btn-danger{background:#fff;color:var(--bad);border:2px solid #F0B8B3}
+.btn-good{background:var(--good);color:#fff}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.btn-row .btn{flex:1 1 150px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+.chip{min-height:48px;border:2px solid #B9D9F8;background:#fff;border-radius:999px;padding:8px 14px;font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;color:var(--deep);cursor:pointer}
+.chip.on{background:linear-gradient(120deg,var(--deep),var(--sapphire));color:#fff;border-color:var(--deep)}
+.post{border:1px solid var(--line);border-radius:16px;padding:14px;margin:0 0 12px;background:#fff}
+.post .cap{white-space:pre-wrap;word-wrap:break-word;margin:6px 0 8px}
+.post .meta{font-size:14px;color:var(--muted);font-weight:600}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:800;vertical-align:middle}
+.pill-queued{background:var(--pale);color:var(--deep)}
+.pill-draft{background:var(--silver-soft);color:var(--ink)}
+.pill-posted{background:var(--good-bg);color:var(--good)}
+.pill-overdue{background:var(--warn-bg);color:var(--warn)}
+.pill-failed{background:var(--bad-bg);color:var(--bad)}
+.pill-saved{background:var(--good-bg);color:var(--good)}
+.pill-off{background:var(--silver-soft);color:var(--muted)}
+.plat{display:inline-block;background:var(--pale);border:1px solid var(--line);color:var(--deep);border-radius:8px;padding:1px 8px;font-size:13px;font-weight:700;margin:0 4px 4px 0}
+.proof{border-top:1px dashed var(--line);margin-top:10px;padding-top:10px}
+.proof-row{margin:0 0 10px}
+.proof-row .pname{font-weight:800;color:var(--deep);font-size:15px}
+.proof-row a{color:var(--sapphire);font-weight:700;word-break:break-all}
+.proof-inputs{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.proof-inputs input{flex:1 1 200px;min-height:48px}
+.empty{border:2px dashed #B9D9F8;border-radius:16px;padding:22px;text-align:center;color:var(--muted);font-weight:600;background:#fff}
+.acct{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:16px;padding:14px;margin:0 0 12px;background:#fff}
+.acct .who{flex:1 1 200px}
+.acct .who .nm{font-family:'Anton',Impact,sans-serif;font-size:19px;color:var(--deep);letter-spacing:.02em}
+.acct .acts{display:flex;gap:8px;flex-wrap:wrap;width:100%}
+.checkresult{font-size:15px;margin-top:8px;width:100%}
+footer{max-width:860px;margin:0 auto;padding:10px 14px 46px;text-align:center}
+.twin{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.twin a{flex:1 1 200px;min-height:56px;display:inline-flex;align-items:center;justify-content:center;border-radius:14px;font-weight:800;font-size:16px;text-decoration:none;padding:12px}
+.twin .shop{background:#fff;color:var(--deep);border:2px solid var(--sapphire)}
+.twin .join{background:linear-gradient(120deg,var(--deep),var(--sapphire));color:#fff}
+footer .legal{font-size:14px;color:var(--muted)}
+footer .legal a{color:var(--deep);font-weight:700}
+.small{font-size:14px;color:var(--muted)}
+.charcount{font-size:13px;color:var(--muted);text-align:right;margin-top:4px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;background:var(--black);color:#fff;padding:12px 20px;border-radius:999px;font-weight:700;font-size:15px;z-index:60;box-shadow:0 6px 24px rgba(0,0,0,.3);display:none;max-width:92vw;text-align:center}
+@media (max-width:520px){
+  header h1{font-size:27px}
+  nav button{font-size:12px;min-height:50px}
+  .btn-row .btn{flex:1 1 100%}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="fly">🦋</div>
+  <h1>GLAM AUTO-POST STUDIO</h1>
+  <p>Create it once, in your own voice. Schedule it everywhere. Keep the proof — a live link for every post.</p>
+</header>
+
+<nav id="tabs" role="tablist">
+  <button data-tab="queue" class="active">Queue <span class="badge" id="badge-queue" style="display:none"></span></button>
+  <button data-tab="create">Create</button>
+  <button data-tab="posted">Posted <span class="badge" id="badge-posted" style="display:none"></span></button>
+  <button data-tab="accounts">Accounts</button>
+  <button data-tab="voice">My Voice</button>
+</nav>
+
+<main>
+  <!-- ============ QUEUE ============ -->
+  <section class="page active" id="page-queue">
+    <div class="card hero" id="hero"></div>
+    <div class="statusline" id="statusline"></div>
+    <div class="card">
+      <h2>⏰ Lined up</h2>
+      <div id="queue-list"></div>
+    </div>
+    <div class="card">
+      <h2>📝 Drafts</h2>
+      <div id="draft-list"></div>
+    </div>
+  </section>
+
+  <!-- ============ CREATE ============ -->
+  <section class="page" id="page-create">
+    <div class="card">
+      <h2>✨ Create a post</h2>
+      <p>Start with a plain idea. The Studio writes it up in <strong>your</strong> voice — set your voice up in the <strong>My Voice</strong> tab first, and it will sound like you, not a robot.</p>
+      <label for="idea">Your idea, in plain words</label>
+      <textarea id="idea" placeholder="Example: my new prompt pack helps beginners write a week of posts in one sitting"></textarea>
+      <div class="btn-row">
+        <button class="btn btn-voice" id="btn-voice-write">🦋 Write it in my voice</button>
+      </div>
+      <label for="caption">Your caption (edit it all you want)</label>
+      <textarea id="caption" placeholder="Your finished caption will land here…"></textarea>
+      <div class="charcount"><span id="charcount">0</span> characters</div>
+      <label>Where should it go?</label>
+      <div class="chips" id="platform-chips"></div>
+      <label for="when">When should it go out?</label>
+      <input type="datetime-local" id="when">
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-schedule">📅 Schedule this post</button>
+        <button class="btn btn-soft" id="btn-draft">Save as draft</button>
+      </div>
+      <p class="small" id="editing-note" style="display:none">You are editing a saved post. Saving will update it. <a href="#" id="cancel-edit">Cancel editing</a></p>
+    </div>
+  </section>
+
+  <!-- ============ POSTED ============ -->
+  <section class="page" id="page-posted">
+    <div class="card">
+      <h2>✅ Your proof log</h2>
+      <p>A post only lands here once its <strong>live link</strong> is saved. No link, no "posted" — that is the whole point. If you ever need to show a post really went out, this is your receipt book.</p>
+      <div id="posted-list"></div>
+    </div>
+    <div class="card">
+      <h2>⚠️ Needs attention</h2>
+      <div id="attention-list"></div>
+    </div>
+  </section>
+
+  <!-- ============ ACCOUNTS ============ -->
+  <section class="page" id="page-accounts">
+    <div class="notice">
+      <strong>Straight talk about connecting:</strong> your Studio itself — the queue, the writing, your voice, and your proof log — works right now, on this device. Live auto-posting <em>into other people's accounts</em> turns on only after each platform (Meta, TikTok, YouTube, and the rest) approves the Glam Auto-Post Studio app. That approval is each platform's rule, not ours. Until a platform is approved, the flow is simple: schedule here, post, then paste your live link in the Queue — your proof is logged either way.
+    </div>
+    <div class="card">
+      <h2>🔗 Your accounts</h2>
+      <p>Save the handle you use on each platform, then run a connection check any time. Your handles are stored only in this browser, on this device.</p>
+      <div id="account-list"></div>
+    </div>
+  </section>
+
+  <!-- ============ MY VOICE ============ -->
+  <section class="page" id="page-voice">
+    <div class="card">
+      <h2>🎤 My Voice</h2>
+      <p>This is how the Studio learns to sound like you. Fill it in once — every caption it writes will use your tone, your phrases, and your sign-off.</p>
+      <label for="v-tone">How do you talk? (your tone)</label>
+      <input type="text" id="v-tone" placeholder="Example: Warm, real, straight-talking, a little sassy">
+      <label for="v-phrases">Your signature phrases (one per line)</label>
+      <textarea id="v-phrases" placeholder="Example:&#10;Listen, baby…&#10;Let me show you how&#10;You got this 💙"></textarea>
+      <label for="v-sample">A caption you wrote that sounds 100% like you</label>
+      <textarea id="v-sample" placeholder="Paste one of your own captions here — the Studio studies it."></textarea>
+      <label for="v-emoji">Your emoji style</label>
+      <select id="v-emoji">
+        <option value="none">No emojis — keep it clean</option>
+        <option value="light">A light touch — one or two</option>
+        <option value="lots">Lots — I love my emojis 💙✨🦋</option>
+      </select>
+      <label for="v-hashtags">Your go-to hashtags (with the #, spaces or commas between)</label>
+      <input type="text" id="v-hashtags" placeholder="Example: #GlamHustleHub #WomenOver40 #LearnAI">
+      <label for="v-cta">Your call to action (how you end a post)</label>
+      <input type="text" id="v-cta" placeholder="Example: Follow so you don't miss the next one! 💙">
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-save-voice">💾 Save my voice</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>🤝 The Glam deal, in plain English</h2>
+      <p><strong>Proof, not promises.</strong> A post counts as posted only when its live link is in your proof log.</p>
+      <p><strong>Your words, your voice.</strong> The Studio writes from <em>your</em> saved voice — never generic robot talk.</p>
+      <p><strong>Your data stays yours.</strong> Everything in this Studio is stored in your browser on your device. We never sell your data. Delete everything any time, right below.</p>
+    </div>
+    <div class="card">
+      <h2>🗂️ Your data</h2>
+      <p>Everything you save in this Studio lives in this browser, on this device.</p>
+      <div class="btn-row">
+        <button class="btn btn-soft" id="btn-export">⬇️ Download my data</button>
+        <button class="btn btn-danger" id="btn-wipe">🗑️ Delete everything</button>
+      </div>
+      <p class="small">Full details: <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Use</a> · <a href="data-deletion.html">How to delete your data</a></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="twin">
+    <a class="shop" href="https://glamhustlehub.com" target="_blank" rel="noopener">🛍️ Shop Glam Hustle Hub</a>
+    <a class="join" href="https://www.skool.com/the-glam-vault/about" target="_blank" rel="noopener">🦋 Join The Glam Vault</a>
+  </div>
+  <p class="legal"><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="data-deletion.html">Delete my data</a></p>
+  <p class="legal">Glam Auto-Post Studio · A Glam Hustle Hub tool 🦋</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+<script>
+"use strict";
+/* ================= Glam Auto-Post Studio ================= */
+const PLATFORMS = [
+  {id:"facebook",  name:"Facebook",  mono:"FB"},
+  {id:"instagram", name:"Instagram", mono:"IG"},
+  {id:"tiktok",    name:"TikTok",    mono:"TT"},
+  {id:"youtube",   name:"YouTube",   mono:"YT"},
+  {id:"threads",   name:"Threads",   mono:"TH"},
+  {id:"pinterest", name:"Pinterest", mono:"PIN"},
+  {id:"x",         name:"X",         mono:"X"},
+  {id:"linkedin",  name:"LinkedIn",  mono:"IN"}
+];
+const platName = id => (PLATFORMS.find(p=>p.id===id)||{}).name || id;
+
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem("gaps_"+k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem("gaps_"+k, JSON.stringify(v)); }catch(e){ toast("This browser could not save — storage may be full or blocked."); } }
+};
+let posts    = store.get("posts", []);
+let accounts = store.get("accounts", {});
+let voice    = store.get("voice", {tone:"", phrases:[], sample:"", emoji:"light", hashtags:"", cta:""});
+let editingId = null;
+let selectedPlatforms = new Set();
+
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+function fmtWhen(iso){
+  if(!iso) return "no time set";
+  const d = new Date(iso);
+  if(isNaN(d)) return "no time set";
+  return d.toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+}
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.style.display = "block";
+  clearTimeout(t._h); t._h = setTimeout(()=>{ t.style.display = "none"; }, 3400);
+}
+function saveAll(){ store.set("posts", posts); store.set("accounts", accounts); store.set("voice", voice); }
+
+/* ---------- derived post state ---------- */
+function postState(p){
+  if(p.kind === "draft") return "draft";
+  const res = p.results || {};
+  const total = p.platforms.length;
+  const done = p.platforms.filter(id => res[id] && res[id].state === "posted").length;
+  if(total && done === total) return "posted";
+  if(p.platforms.some(id => res[id] && res[id].state === "failed")) return "attention";
+  if(p.scheduledAt && new Date(p.scheduledAt) < new Date()) return "overdue";
+  return "queued";
+}
+const hasFailure = p => p.platforms.some(id => (p.results||{})[id] && p.results[id].state === "failed");
+
+/* ---------- tabs ---------- */
+$$("#tabs button").forEach(b => b.addEventListener("click", () => switchTab(b.dataset.tab)));
+function switchTab(name){
+  $$("#tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+  $$(".page").forEach(pg => pg.classList.toggle("active", pg.id === "page-" + name));
+  window.scrollTo({top:0});
+  render();
+}
+
+/* ---------- rendering ---------- */
+function render(){ renderQueue(); renderPosted(); renderAccounts(); renderBadges(); }
+
+function renderBadges(){
+  const qb = posts.filter(p => ["draft","queued","overdue","attention"].includes(postState(p))).length;
+  const pb = posts.filter(p => postState(p) === "posted").length;
+  const bq = $("#badge-queue"), bp = $("#badge-posted");
+  bq.style.display = qb ? "" : "none"; bq.textContent = qb;
+  bp.style.display = pb ? "" : "none"; bp.textContent = pb;
+}
+
+function renderQueue(){
+  const now = new Date();
+  const upcoming = posts.filter(p => p.kind !== "draft" && postState(p) !== "posted")
+                        .sort((a,b) => new Date(a.scheduledAt||0) - new Date(b.scheduledAt||0));
+  const drafts = posts.filter(p => p.kind === "draft")
+                      .sort((a,b) => new Date(b.updatedAt||0) - new Date(a.updatedAt||0));
+  const postedCount = posts.filter(p => postState(p) === "posted").length;
+  const overdueCount = upcoming.filter(p => postState(p) === "overdue").length;
+
+  /* hero: up next */
+  const hero = $("#hero");
+  if(upcoming.length){
+    const n = upcoming[0];
+    hero.innerHTML = `<h2>🦋 Up next</h2>
+      <div class="when">${esc(fmtWhen(n.scheduledAt))}</div>
+      <p><strong>${n.platforms.map(platName).join(" · ")}</strong></p>
+      <p>${esc(n.caption.length > 180 ? n.caption.slice(0,180) + "…" : n.caption)}</p>`;
+  } else {
+    hero.innerHTML = `<h2>🦋 Nothing lined up yet</h2>
+      <p>Your queue is clear. Head to the <strong>Create</strong> tab and line up your next post — future you says thanks.</p>`;
+  }
+
+  /* plain-English status line */
+  const bits = [];
+  bits.push(upcoming.length ? `You have ${upcoming.length} post${upcoming.length>1?"s":""} lined up.` : "Your queue is empty.");
+  if(drafts.length) bits.push(`${drafts.length} draft${drafts.length>1?"s":""} waiting to be finished.`);
+  if(overdueCount) bits.push(`⚠️ ${overdueCount} post${overdueCount>1?"s are":" is"} past its time — open it below and log what happened.`);
+  if(postedCount) bits.push(`${postedCount} post${postedCount>1?"s":""} in your proof log. ✅`);
+  $("#statusline").textContent = bits.join(" ");
+
+  $("#queue-list").innerHTML = upcoming.length
+    ? upcoming.map(p => postCard(p, true)).join("")
+    : `<div class="empty">Nothing lined up. Create a post and schedule it — it will wait for you right here.</div>`;
+  $("#draft-list").innerHTML = drafts.length
+    ? drafts.map(p => postCard(p, false)).join("")
+    : `<div class="empty">No drafts. Half-formed idea? Save it as a draft in Create so it never gets lost.</div>`;
+  wirePostCards();
+}
+
+function renderPosted(){
+  const done = posts.filter(p => postState(p) === "posted")
+                    .sort((a,b) => new Date(b.updatedAt||0) - new Date(a.updatedAt||0));
+  const attn = posts.filter(p => p.kind !== "draft" && hasFailure(p))
+                    .sort((a,b) => new Date(b.updatedAt||0) - new Date(a.updatedAt||0));
+  $("#posted-list").innerHTML = done.length
+    ? done.map(p => postCard(p, false)).join("")
+    : `<div class="empty">No proof yet. When a post goes out, paste its live link in the Queue — it will move here as your receipt.</div>`;
+  $("#attention-list").innerHTML = attn.length
+    ? attn.map(p => postCard(p, true)).join("")
+    : `<div class="empty">All clear — nothing failed, nothing waiting on you. 🎉</div>`;
+  wirePostCards();
+}
+
+function pillFor(state){
+  return {queued:'<span class="pill pill-queued">LINED UP</span>',
+          draft:'<span class="pill pill-draft">DRAFT</span>',
+          posted:'<span class="pill pill-posted">POSTED ✅</span>',
+          overdue:'<span class="pill pill-overdue">PAST ITS TIME ⚠️</span>',
+          attention:'<span class="pill pill-failed">NEEDS ATTENTION</span>'}[state] || "";
+}
+
+function postCard(p, withProof){
+  const state = postState(p);
+  const res = p.results || {};
+  let proofHtml = "";
+  if(withProof && p.kind !== "draft"){
+    const rows = p.platforms.map(id => {
+      const r = res[id];
+      if(r && r.state === "posted")
+        return `<div class="proof-row"><span class="pname">${esc(platName(id))}:</span> <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a> <button class="btn btn-soft btn-small" data-undo="${p.id}|${id}">Undo</button></div>`;
+      if(r && r.state === "failed")
+        return `<div class="proof-row"><span class="pname">${esc(platName(id))}:</span> <span class="pill pill-failed">DID NOT POST</span> <button class="btn btn-soft btn-small" data-undo="${p.id}|${id}">Clear</button></div>`;
+      return `<div class="proof-row"><span class="pname">${esc(platName(id))}:</span>
+        <div class="proof-inputs">
+          <input type="url" inputmode="url" placeholder="Paste the live link for ${esc(platName(id))}…" data-proof-input="${p.id}|${id}">
+          <button class="btn btn-good btn-small" data-proof-save="${p.id}|${id}">Save proof</button>
+          <button class="btn btn-danger btn-small" data-proof-fail="${p.id}|${id}">Didn't post</button>
+        </div></div>`;
+    }).join("");
+    proofHtml = `<div class="proof"><p class="small" style="margin:0 0 8px">When this post goes out, paste the live link for each platform. That link is your proof — no link, no “posted.”</p>${rows}</div>`;
+  }
+  if(!withProof && state === "posted"){
+    const rows = p.platforms.map(id => {
+      const r = res[id];
+      return r && r.state === "posted"
+        ? `<div class="proof-row"><span class="pname">${esc(platName(id))}:</span> <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a></div>`
+        : "";
+    }).join("");
+    proofHtml = `<div class="proof">${rows}</div>`;
+  }
+  return `<div class="post">
+    <div>${pillFor(state)} <span class="meta">${p.kind === "draft" ? "saved " + fmtWhen(p.updatedAt) : "for " + fmtWhen(p.scheduledAt)}</span></div>
+    <div style="margin-top:6px">${p.platforms.map(id => `<span class="plat">${esc(platName(id))}</span>`).join("")}</div>
+    <p class="cap">${esc(p.caption)}</p>
+    ${proofHtml}
+    <div class="btn-row">
+      <button class="btn btn-soft btn-small" data-edit="${p.id}">✏️ Edit</button>
+      <button class="btn btn-danger btn-small" data-del="${p.id}">🗑️ Delete</button>
+    </div>
+  </div>`;
+}
+
+function wirePostCards(){
+  $$("[data-edit]").forEach(b => b.onclick = () => loadIntoComposer(b.dataset.edit));
+  $$("[data-del]").forEach(b => b.onclick = () => {
+    if(!confirm("Delete this post from your Studio? This cannot be undone.")) return;
+    posts = posts.filter(p => p.id !== b.dataset.del);
+    if(editingId === b.dataset.del) resetComposer();
+    saveAll(); render(); toast("Post deleted.");
+  });
+  $$("[data-proof-save]").forEach(b => b.onclick = () => {
+    const [pid, plat] = b.dataset.proofSave.split("|");
+    const input = document.querySelector(`[data-proof-input="${pid}|${plat}"]`);
+    const url = (input.value || "").trim();
+    if(!/^https?:\/\/.+/i.test(url)){ toast("Paste the full live link (starting with https://) — that link is the proof."); return; }
+    const p = posts.find(x => x.id === pid); if(!p) return;
+    p.results = p.results || {};
+    p.results[plat] = {state:"posted", url, at:new Date().toISOString()};
+    p.updatedAt = new Date().toISOString();
+    saveAll(); render();
+    toast(postState(p) === "posted" ? "✅ Proof complete — it's in your log!" : "Proof saved for " + platName(plat) + " ✅");
+  });
+  $$("[data-proof-fail]").forEach(b => b.onclick = () => {
+    const [pid, plat] = b.dataset.proofFail.split("|");
+    const p = posts.find(x => x.id === pid); if(!p) return;
+    p.results = p.results || {};
+    p.results[plat] = {state:"failed", at:new Date().toISOString()};
+    p.updatedAt = new Date().toISOString();
+    saveAll(); render();
+    toast("Marked as not posted for " + platName(plat) + " — it will wait under Needs attention.");
+  });
+  $$("[data-undo]").forEach(b => b.onclick = () => {
+    const [pid, plat] = b.dataset.undo.split("|");
+    const p = posts.find(x => x.id === pid); if(!p) return;
+    if(p.results) delete p.results[plat];
+    p.updatedAt = new Date().toISOString();
+    saveAll(); render();
+  });
+}
+
+/* ---------- accounts ---------- */
+function renderAccounts(){
+  const wrap = $("#account-list");
+  wrap.innerHTML = PLATFORMS.map(pl => {
+    const a = accounts[pl.id] || {};
+    const saved = !!a.handle;
+    return `<div class="acct">
+      <div class="who">
+        <div class="nm">${esc(pl.name)}</div>
+        <div>${saved ? '<span class="pill pill-saved">HANDLE SAVED</span>' : '<span class="pill pill-off">NOT SAVED YET</span>'}</div>
+        ${a.lastCheck ? `<div class="small">Last checked ${esc(fmtWhen(a.lastCheck))}</div>` : ""}
+      </div>
+      <label style="width:100%;margin-top:6px">Your ${esc(pl.name)} handle
+        <input type="text" placeholder="@yourhandle" value="${esc(a.handle || "")}" data-handle="${pl.id}">
+      </label>
+      <div class="acts">
+        <button class="btn btn-primary btn-small" data-acct-save="${pl.id}">💾 Save handle</button>
+        <button class="btn btn-soft btn-small" data-acct-check="${pl.id}">🔍 Check connection</button>
+        ${saved ? `<button class="btn btn-danger btn-small" data-acct-drop="${pl.id}">Remove</button>` : ""}
+      </div>
+      <div class="checkresult" id="check-${pl.id}"></div>
+    </div>`;
+  }).join("");
+  $$("[data-acct-save]").forEach(b => b.onclick = () => {
+    const id = b.dataset.acctSave;
+    const val = document.querySelector(`[data-handle="${id}"]`).value.trim();
+    if(!val){ toast("Type your " + platName(id) + " handle first."); return; }
+    accounts[id] = accounts[id] || {};
+    accounts[id].handle = val;
+    saveAll(); renderAccounts(); renderBadges();
+    toast(platName(id) + " handle saved ✅");
+  });
+  $$("[data-acct-drop]").forEach(b => b.onclick = () => {
+    const id = b.dataset.acctDrop;
+    if(!confirm("Remove your saved " + platName(id) + " handle from this device?")) return;
+    delete accounts[id]; saveAll(); renderAccounts();
+    toast(platName(id) + " handle removed.");
+  });
+  $$("[data-acct-check]").forEach(b => b.onclick = () => {
+    const id = b.dataset.acctCheck;
+    const a = accounts[id] || {};
+    const out = document.getElementById("check-" + id);
+    if(!a.handle){ out.innerHTML = `<span style="color:var(--bad);font-weight:700">Add and save your ${esc(platName(id))} handle first — then the check has something to check.</span>`; return; }
+    a.lastCheck = new Date().toISOString(); accounts[id] = a; saveAll();
+    out.innerHTML = `✅ <strong>${esc(platName(id))} is set up in your Studio</strong> — handle <strong>${esc(a.handle)}</strong> saved on this device, and your queue and proof log are ready for it.<br>
+    <span class="small">Honest status: live auto-posting into your ${esc(platName(id))} account switches on once ${esc(platName(id))} approves the Glam Auto-Post Studio app. Until then: schedule here, post, and paste your live link in the Queue to log your proof.</span>`;
+    renderAccounts();
+    const again = document.getElementById("check-" + id);
+    if(again) again.innerHTML = out.innerHTML;
+  });
+}
+
+/* ---------- create / composer ---------- */
+function renderChips(){
+  $("#platform-chips").innerHTML = PLATFORMS.map(pl =>
+    `<button type="button" class="chip ${selectedPlatforms.has(pl.id) ? "on" : ""}" data-chip="${pl.id}">${esc(pl.name)}</button>`).join("");
+  $$("[data-chip]").forEach(c => c.onclick = () => {
+    const id = c.dataset.chip;
+    selectedPlatforms.has(id) ? selectedPlatforms.delete(id) : selectedPlatforms.add(id);
+    renderChips();
+  });
+}
+function updateCount(){ $("#charcount").textContent = $("#caption").value.length; }
+$("#caption").addEventListener("input", updateCount);
+
+const BODY_LINES = [
+  "Let me break it down nice and simple — no tech degree needed.",
+  "Start where you are. This is beginner-friendly, promise.",
+  "Here is the part nobody tells you: it is easier than you think, and you can start today.",
+  "I did the trial and error so you don't have to. Just follow along.",
+  "Small steps, big results. This is how we do it over here."
+];
+function writeInMyVoice(){
+  const idea = $("#idea").value.trim();
+  if(!idea){ toast("Type your idea first — then I'll write it in your voice 🦋"); return; }
+  const v = voice;
+  const capFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
+  let hook = capFirst(idea.replace(/\s+/g, " "));
+  if(!/[.!?…]$/.test(hook)) hook += ".";
+  const phrases = (v.phrases || []).map(s => s.trim()).filter(Boolean);
+  const sparkle = v.emoji === "lots" ? " ✨💙🦋" : (v.emoji === "light" ? " ✨" : "");
+  const lines = [];
+  if(phrases.length) lines.push(phrases[Math.floor(Math.random() * phrases.length)]);
+  lines.push(hook);
+  lines.push(BODY_LINES[Math.floor(Math.random() * BODY_LINES.length)] + sparkle);
+  if(v.cta && v.cta.trim()) lines.push(v.cta.trim());
+  /* hashtags: hers first, then up to 3 from the idea */
+  const stop = new Set(["about","helps","help","with","your","yours","that","this","will","from","into","week","sitting","beginners","beginner"]);
+  const hers = (v.hashtags || "").split(/[\s,]+/).filter(Boolean).map(h => h.startsWith("#") ? h : "#" + h);
+  const derived = idea.replace(/[^a-zA-Z0-9 ]/g, " ").split(/\s+/)
+    .filter(w => w.length > 4 && !stop.has(w.toLowerCase()))
+    .slice(0, 3)
+    .map(w => "#" + w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+  const tags = [...new Set([...hers, ...derived])].slice(0, 6);
+  if(tags.length) lines.push(tags.join(" "));
+  $("#caption").value = lines.join("\n\n");
+  updateCount();
+  toast("Written in your voice 🦋 Edit it until it sounds exactly like you.");
+}
+$("#btn-voice-write").addEventListener("click", writeInMyVoice);
+
+function collectComposer(kind){
+  const caption = $("#caption").value.trim();
+  if(!caption){ toast("Write or generate a caption first."); return null; }
+  if(!selectedPlatforms.size){ toast("Tap at least one platform — where should this go?"); return null; }
+  const when = $("#when").value;
+  if(kind === "queued" && !when){ toast("Pick a date and time — or save it as a draft instead."); return null; }
+  return { caption, platforms:[...selectedPlatforms], scheduledAt: when ? new Date(when).toISOString() : null, kind };
+}
+function saveComposer(kind){
+  const data = collectComposer(kind);
+  if(!data) return;
+  const nowIso = new Date().toISOString();
+  if(editingId){
+    const p = posts.find(x => x.id === editingId);
+    if(p){ Object.assign(p, data, {idea: $("#idea").value.trim(), updatedAt: nowIso}); }
+    toast(kind === "draft" ? "Draft updated ✅" : "Post updated and lined up ✅");
+  } else {
+    posts.push({ id: uid(), idea: $("#idea").value.trim(), caption: data.caption, platforms: data.platforms,
+                 scheduledAt: data.scheduledAt, kind, results:{}, createdAt: nowIso, updatedAt: nowIso });
+    toast(kind === "draft" ? "Draft saved ✅ Find it under Queue → Drafts." : "Lined up ✅ See it in your Queue.");
+  }
+  resetComposer();
+  saveAll();
+  switchTab("queue");
+}
+$("#btn-schedule").addEventListener("click", () => saveComposer("queued"));
+$("#btn-draft").addEventListener("click", () => saveComposer("draft"));
+
+function toLocalInput(d){
+  const pad = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function loadIntoComposer(id){
+  const p = posts.find(x => x.id === id);
+  if(!p) return;
+  editingId = id;
+  $("#idea").value = p.idea || "";
+  $("#caption").value = p.caption || "";
+  selectedPlatforms = new Set(p.platforms || []);
+  $("#when").value = p.scheduledAt ? toLocalInput(new Date(p.scheduledAt)) : "";
+  $("#editing-note").style.display = "";
+  renderChips(); updateCount();
+  switchTab("create");
+}
+function resetComposer(){
+  editingId = null;
+  $("#idea").value = ""; $("#caption").value = "";
+  selectedPlatforms = new Set();
+  $("#editing-note").style.display = "none";
+  const t = new Date(); t.setDate(t.getDate() + 1); t.setHours(9, 0, 0, 0);
+  $("#when").value = toLocalInput(t);
+  renderChips(); updateCount();
+}
+$("#cancel-edit").addEventListener("click", e => { e.preventDefault(); resetComposer(); toast("Editing cancelled — nothing was changed."); });
+
+/* ---------- voice ---------- */
+function loadVoiceForm(){
+  $("#v-tone").value = voice.tone || "";
+  $("#v-phrases").value = (voice.phrases || []).join("\n");
+  $("#v-sample").value = voice.sample || "";
+  $("#v-emoji").value = voice.emoji || "light";
+  $("#v-hashtags").value = voice.hashtags || "";
+  $("#v-cta").value = voice.cta || "";
+}
+$("#btn-save-voice").addEventListener("click", () => {
+  voice = {
+    tone: $("#v-tone").value.trim(),
+    phrases: $("#v-phrases").value.split("\n").map(s => s.trim()).filter(Boolean),
+    sample: $("#v-sample").value.trim(),
+    emoji: $("#v-emoji").value,
+    hashtags: $("#v-hashtags").value.trim(),
+    cta: $("#v-cta").value.trim()
+  };
+  saveAll();
+  toast("Your voice is saved 🎤 The Studio will write like you now.");
+});
+
+/* ---------- your data ---------- */
+$("#btn-export").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify({posts, accounts, voice}, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "glam-auto-post-studio-my-data.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("Your data is downloading ⬇️");
+});
+$("#btn-wipe").addEventListener("click", () => {
+  if(!confirm("Delete EVERYTHING in this Studio — posts, drafts, proof log, handles, and your voice? This cannot be undone.")) return;
+  if(!confirm("Are you sure? Your proof log is your receipt book.")) return;
+  ["posts","accounts","voice"].forEach(k => localStorage.removeItem("gaps_" + k));
+  location.reload();
+});
+
+/* ---------- init ---------- */
+loadVoiceForm();
+resetComposer();
+render();
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+}
+</script>
+</body>
+</html>
